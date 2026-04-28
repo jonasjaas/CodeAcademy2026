@@ -3,7 +3,7 @@ on:
   pull_request:
     paths:
       - 1-DevOps/idempotweet/**
-  workflow_call: "run-ci"
+  workflow_call: true
 
 defaults:
   run:

@@ -5,7 +5,7 @@ on:
       - main
     paths:
       - 1-DevOps/idempotweet/**
-  workflow_dispatch: "run-ci"
+  workflow_dispatch: true
 
 env:
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
