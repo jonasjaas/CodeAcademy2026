@@ -6,13 +6,13 @@ WORKDIR /app
 
 RUN corepack enable
 
-COPY ./package.json .
-COPY ./yarn.lock .
-COPY ./yarnrc.yml .
+COPY package.json yarn.lock .yarnrc.yml ./
 
 RUN yarn install --immutable
 
 FROM node:20-alpine AS builder
+
+WORKDIR /app
 
 RUN corepack enable
 
@@ -22,14 +22,32 @@ ENV NEXT_PUBLIC_ENABLE_IDEM_FORM=NEXT_PUBLIC_ENABLE_IDEM_FORM
 ARG NEXT_PUBLIC_SHOW_SEEDED_IDEMS=false
 ENV NEXT_PUBLIC_SHOW_SEEDED_IDEMS=NEXT_PUBLIC_SHOW_SEEDED_IDEMS
 
-RUN apk add libc6-compat
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/.yarn ./.yarn
+
+COPY . .
+
+RUN yarn build 
+
+FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-RUN corepack enable
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY ./package.json .
-COPY ./yarn.lock .
-COPY ./yarnrc.yml .
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -u 1001 -S nextjs -G nodejs
 
-RUN yarn install --immutable
+COPY --from=builder /app/public ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
