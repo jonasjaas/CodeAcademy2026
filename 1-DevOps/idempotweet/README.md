@@ -1,4 +1,4 @@
-# Idempotweet
+# Idempotweettest
 
 A demo application showcasing a Twitter-like feed of "idems" (idempotent tweets) built with Next.js 16, React 19, and TanStack Query.
 
@@ -54,8 +54,8 @@ The `yarn dev` and `yarn seed` commands automatically use the local database URL
 
 ### Environment Variables
 
-| Variable | Description | Default (dev) |
-|----------|-------------|---------------|
+| Variable       | Description                  | Default (dev)                                                     |
+| -------------- | ---------------------------- | ----------------------------------------------------------------- |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://codeacademy:codeacademy@localhost:5432/codeacademy` |
 
 ### Database Commands
@@ -144,10 +144,12 @@ scripts/
 Returns a paginated response of idems sorted by `createdAt` descending.
 
 **Query Parameters:**
+
 - `page` (default: 1) - Page number (1-indexed)
 - `pageSize` (default: 20) - Items per page (max: 100)
 
 **Response:**
+
 ```typescript
 interface PaginatedResponse {
   items: Idem[];
@@ -161,12 +163,13 @@ interface PaginatedResponse {
 interface Idem {
   id: string;
   author: string;
-  content: string;      // max 280 characters
-  createdAt: string;    // ISO 8601 timestamp
+  content: string; // max 280 characters
+  createdAt: string; // ISO 8601 timestamp
 }
 ```
 
 **Example:**
+
 ```bash
 curl http://localhost:3000/api/idems?page=1
 ```
@@ -193,6 +196,7 @@ The table is auto-created on first API request if it doesn't exist.
 ### Connection
 
 The database connection uses a pool with:
+
 - Max 10 connections
 - 30s idle timeout
 - 2s connection timeout
