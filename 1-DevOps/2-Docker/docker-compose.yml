@@ -1,0 +1,8 @@
+services:
+  app:
+    build:
+      context: ../../1-DevOps/idempotweet # build context (applikasjonsmappen)
+      dockerfile: ../2-Docker/Dockerfile # sti til Dockerfilen relativt til context
+    ports:
+      - "3000:3000"
+    # ...
