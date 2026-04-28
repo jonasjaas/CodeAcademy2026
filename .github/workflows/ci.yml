@@ -1,8 +1,8 @@
 name: "run-ci"
 on:
   pull_request:
-    paths:
-      - 1-DevOps/idempotweet/**
+    # paths:
+    #   - 1-DevOps/idempotweet/**
   workflow_call:
     inputs:
       test:

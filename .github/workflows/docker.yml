@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 1-DevOps/idempotweet/**
+    # paths:
+    #   - 1-DevOps/idempotweet/**
   pull_request:
     paths:
       - 1-DevOps/idempotweet/**
