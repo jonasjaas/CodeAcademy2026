@@ -5,8 +5,10 @@ on:
       - 1-DevOps/idempotweet/**
   workflow_call:
     inputs:
-      config-path:
-        required: true
+      test:
+        description: "test"
+        default: "test"
+        required: false
         type: string
 
 defaults:

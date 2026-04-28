@@ -1,4 +1,4 @@
-# Idempotweettest
+# Idempotweet
 
 A demo application showcasing a Twitter-like feed of "idems" (idempotent tweets) built with Next.js 16, React 19, and TanStack Query.
 
