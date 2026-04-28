@@ -3,7 +3,11 @@ on:
   pull_request:
     paths:
       - 1-DevOps/idempotweet/**
-  workflow_call: true
+  workflow_call:
+    inputs:
+      config-path:
+        required: true
+        type: string
 
 defaults:
   run:
