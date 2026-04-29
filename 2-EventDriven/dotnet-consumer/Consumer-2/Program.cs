@@ -5,7 +5,7 @@ using CodeAcademy.DotnetConsumer.Common.Config;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
-Console.WriteLine("Starting Consumer application...");
+Console.WriteLine("Starting Consumer 2 application...");
 
 // Establish connection to RabbitMQ
 using var connection = await ConnectionHelper.ConnectAsync();
@@ -23,9 +23,11 @@ Console.WriteLine("Connected to RabbitMQ");
 // Create a channel and declare the queue
 using var channel = await connection.CreateChannelAsync();
 
-await channel.ExchangeDeclareAsync(exchange: "chat", type: "fanout", autoDelete: false, arguments: null);
-await channel.QueueDeclareAsync(queue: "chat_jonas", durable: true, autoDelete: false, arguments: null);
-await channel.QueueBindAsync(queue: "chat_jonas", exchange: "chat", routingKey: "", arguments: null);
+await channel.ExchangeDeclareAsync(exchange: "jonas-exchange", type: ExchangeType.Fanout, durable: true, autoDelete: true);
+
+var queueResult = await channel.QueueDeclareAsync(queue: "jonas-fanout-queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+await channel.QueueBindAsync(queue: queueResult.QueueName, exchange: "jonas-exchange", routingKey: String.Empty);
 
 // Set up a consumer to listen for messages
 var consumer = new AsyncEventingBasicConsumer(channel);
@@ -45,5 +47,5 @@ consumer.ReceivedAsync += async (sender, eventArgs) =>
     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
 };
 // Start consuming messages
-await channel.BasicConsumeAsync(queue: "chat_jonas", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
+await channel.BasicConsumeAsync(queue: queueResult.QueueName, autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
 Console.ReadLine(); // Keep the application running to listen for messages
