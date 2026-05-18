@@ -18,14 +18,15 @@ Console.WriteLine("Connected to RabbitMQ");
 // - Create a consumer and subscribe to the queue
 // - Handle incoming messages by deserializing the JSON and printing the content to the console
 
-
-
 // Create a channel and declare the queue
 using var channel = await connection.CreateChannelAsync();
 
-await channel.ExchangeDeclareAsync(exchange: "chat", type: "fanout", autoDelete: false, arguments: null);
-await channel.QueueDeclareAsync(queue: "chat_jonas", durable: true, autoDelete: false, arguments: null);
-await channel.QueueBindAsync(queue: "chat_jonas", exchange: "chat", routingKey: "", arguments: null);
+// --- FANOUT EXCHANGE IMPLEMENTATION ---
+
+await channel.ExchangeDeclareAsync(exchange: "fanout_exchange", type: ExchangeType.Fanout, durable: false, autoDelete: false, arguments: null);
+
+await channel.QueueDeclareAsync(queue: "fanout_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+await channel.QueueBindAsync(queue: "fanout_queue", exchange: "fanout_exchange", routingKey: "", arguments: null);
 
 // Set up a consumer to listen for messages
 var consumer = new AsyncEventingBasicConsumer(channel);
@@ -45,5 +46,99 @@ consumer.ReceivedAsync += async (sender, eventArgs) =>
     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
 };
 // Start consuming messages
-await channel.BasicConsumeAsync(queue: "chat_jonas", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
+await channel.BasicConsumeAsync(queue: "fanout_queue", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
 Console.ReadLine(); // Keep the application running to listen for messages
+
+// --- DIRECT EXCHANGE IMPLEMENTATION ---
+
+// await channel.ExchangeDeclareAsync(exchange: "direct_exchange", type: "direct", autoDelete: false, arguments: null);
+
+// await channel.QueueDeclareAsync(queue: "direct_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+// await channel.QueueBindAsync(queue: "direct_queue", exchange: "direct_exchange", routingKey: "direct_key_2", arguments: null);
+
+// // Set up a consumer to listen for messages
+// var consumer = new AsyncEventingBasicConsumer(channel);
+
+// // Handle received messages
+// consumer.ReceivedAsync += async (sender, eventArgs) =>
+// {
+//     var body = eventArgs.Body.ToArray();
+//     var message = JsonSerializer.Deserialize<JsonNode>(Encoding.UTF8.GetString(body));
+
+//     Console.WriteLine($"Received message: {message}");
+
+//     // Simulate processing time
+//     await Task.Delay(1000);
+
+//     // Acknowledge the message
+//     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+// };
+// // Start consuming messages
+// await channel.BasicConsumeAsync(queue: "direct_queue", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
+// Console.ReadLine(); // Keep the application running to listen for messages
+
+// --- TOPIC EXCHANGE IMPLEMENTATION ---
+
+// await channel.ExchangeDeclareAsync(exchange: "topic_exchange", type: "topic", autoDelete: false, arguments: null);
+
+// await channel.QueueDeclareAsync(queue: "topic_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+// await channel.QueueBindAsync(queue: "topic_queue", exchange: "topic_exchange", routingKey: "idem.private", arguments: null);
+
+// // Set up a consumer to listen for messages
+// var consumer = new AsyncEventingBasicConsumer(channel);
+
+// // Handle received messages
+// consumer.ReceivedAsync += async (sender, eventArgs) =>
+// {
+//     var body = eventArgs.Body.ToArray();
+//     var message = JsonSerializer.Deserialize<JsonNode>(Encoding.UTF8.GetString(body));
+
+//     Console.WriteLine($"Received message: {message}");
+
+//     // Simulate processing time
+//     await Task.Delay(1000);
+
+//     // Acknowledge the message
+//     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+// };
+// // Start consuming messages
+// await channel.BasicConsumeAsync(queue: "topic_queue", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
+// Console.ReadLine(); // Keep the application running to listen for messages
+
+// --- HEADER EXCHANGE IMPLEMENTATION ---
+
+// await channel.ExchangeDeclareAsync(exchange: "headers_exchange", type: "headers", autoDelete: false, arguments: null);
+
+// await channel.QueueDeclareAsync(queue: "headers_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
+// await channel.QueueBindAsync(
+//         queue: "headers_queue",
+//         exchange: "headers_exchange",
+//         routingKey: "",
+//         arguments: new Dictionary<string, object>
+//             {
+//                 { "x-match", "all" },
+//                 { "author", "alice" },
+//                 { "visibility", "public" }
+//             }
+//         );
+
+// // Set up a consumer to listen for messages
+// var consumer = new AsyncEventingBasicConsumer(channel);
+
+// // Handle received messages
+// consumer.ReceivedAsync += async (sender, eventArgs) =>
+// {
+//     var body = eventArgs.Body.ToArray();
+//     var message = JsonSerializer.Deserialize<JsonNode>(Encoding.UTF8.GetString(body));
+
+//     Console.WriteLine($"Received message: {message}");
+
+//     // Simulate processing time
+//     await Task.Delay(1000);
+
+//     // Acknowledge the message
+//     await channel.BasicAckAsync(eventArgs.DeliveryTag, multiple: false);
+// };
+// // Start consuming messages
+// await channel.BasicConsumeAsync(queue: "headers_queue", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
+// Console.ReadLine(); // Keep the application running to listen for messages

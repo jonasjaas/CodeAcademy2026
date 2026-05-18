@@ -13,7 +13,7 @@ public class ConnectionHelper
 
     public static async Task<IConnection> ConnectAsync()
     {
-        var rabbitMqUri = Configuration["RabbitMQRemote:URI"]
+        var rabbitMqUri = Configuration["RabbitMQ:URI"]
             ?? throw new InvalidOperationException("RabbitMQ:URI is not configured (set via appsettings.json or RabbitMQ__URI env var)");
 
         var factory = new ConnectionFactory
@@ -21,7 +21,7 @@ public class ConnectionHelper
             Uri = new Uri(rabbitMqUri),
             Ssl = new SslOption
             {
-                Enabled = true,
+                Enabled = false,
                 ServerName = new Uri(rabbitMqUri).Host,
                 CertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true // Accept all certificates (for demo purposes only)
             }
