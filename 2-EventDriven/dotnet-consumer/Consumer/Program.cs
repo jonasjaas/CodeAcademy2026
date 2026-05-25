@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿
+using System;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using CodeAcademy.DotnetConsumer.Common.Config;
@@ -10,6 +12,7 @@ Console.WriteLine("Starting Consumer application...");
 // Establish connection to RabbitMQ
 using var connection = await ConnectionHelper.ConnectAsync();
 Console.WriteLine("Connected to RabbitMQ");
+
 
 // Implement a basic consumer here.
 // Start with:
@@ -48,6 +51,7 @@ consumer.ReceivedAsync += async (sender, eventArgs) =>
 // Start consuming messages
 await channel.BasicConsumeAsync(queue: "fanout_queue", autoAck: false, consumerTag: "", noLocal: false, exclusive: false, arguments: null, consumer: consumer);
 Console.ReadLine(); // Keep the application running to listen for messages
+
 
 // --- DIRECT EXCHANGE IMPLEMENTATION ---
 
