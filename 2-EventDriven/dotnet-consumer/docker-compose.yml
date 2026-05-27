@@ -7,7 +7,12 @@ name: codeacademy
 services:
   rabbitmq:
     image: rabbitmq:4.1.4-management-alpine
-    container_name: 'rabbitmq_ca'
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: "rabbitmq_ca"
     ports:
       - 5672:5672
       - 15672:15672
@@ -20,7 +25,7 @@ services:
     container_name: postgres
     image: postgres:17-alpine
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U codeacademy -d codeacademy" ]
+      test: ["CMD-SHELL", "pg_isready -U codeacademy -d codeacademy"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -35,8 +40,14 @@ services:
     restart: unless-stopped
     networks:
       - code_academy_network
-  # dotnet-consumer:
-  
+  dotnet-consumer:
+    build: .
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq
+
 networks:
   code_academy_network:
     driver: bridge

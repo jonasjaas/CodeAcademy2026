@@ -15,4 +15,4 @@ RUN dotnet build Producer
 RUN dotnet build Consumer 
 
 # Run both concurrently
-CMD dotnet run --project Producer & dotnet run --project Consumer
+CMD ["/bin/bash", "-c", "dotnet run --project Producer & dotnet run --project Consumer"]
