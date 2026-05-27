@@ -16,7 +16,8 @@ public class ConnectionHelper
         var rabbitMqUri = Configuration["RabbitMQ:URI"]
             ?? throw new InvalidOperationException("RabbitMQ:URI is not configured (set via appsettings.json or RabbitMQ__URI env var)");
 
-        var factory = new ConnectionFactory { 
+        var factory = new ConnectionFactory
+        {
             Uri = new Uri(rabbitMqUri),
             Ssl = new SslOption
             {

@@ -6,4 +6,6 @@ target/
 out/
 bin/
 obj/
+.env
+.kiro
 .DS_Store
