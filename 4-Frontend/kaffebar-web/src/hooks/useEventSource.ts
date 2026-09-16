@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * RUNDE 1 — her begynner du.  Se 4-Frontend/oppgave.md, oppgave 1.
@@ -36,16 +36,32 @@ export function useEventSource(
   url: string,
   onEvent: (event: MessageEvent) => void,
 ): ConnectionState {
-  const [state] = useState<ConnectionState>("closed");
+  const [state, setState] = useState<ConnectionState>("closed");
+  const ref = useRef(onEvent);
 
   useEffect(() => {
+    ref.current = onEvent;
+  }, [onEvent]);
+
+  useEffect(() => {
+    const source = new EventSource(url);
+    source.addEventListener("ready", () => {
+      setState("open");
+    });
+
+    source.addEventListener("order.status-changed", ref.current);
+    source.addEventListener("order.created", ref.current);
     // TODO (runde 1): opprett en EventSource mot `url`, kall `onEvent` for hver
     //                 hendelse, og lukk forbindelsen når komponenten forsvinner.
     //                 Sett `state` til "open" når forbindelsen er oppe, slik at
     //                 indikatoren øverst til høyre slår om til «live».
-    void url;
-    void onEvent;
-  }, [url, onEvent]);
+
+    return () => {
+      source.close();
+    };
+    // void url;
+    // void onEvent;
+  }, [url]);
 
   return state;
 }

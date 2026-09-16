@@ -48,8 +48,14 @@ function getConnection(): Promise<ChannelModel> {
     .connect(RABBITMQ_URL)
     .then((connection) => {
       // Dør forbindelsen, skal neste kall lage en ny — ikke gjenbruke en død.
-      connection.on("close", () => void (globalForAmqp.__kaffebarConnection = undefined));
-      connection.on("error", () => void (globalForAmqp.__kaffebarConnection = undefined));
+      connection.on(
+        "close",
+        () => void (globalForAmqp.__kaffebarConnection = undefined),
+      );
+      connection.on(
+        "error",
+        () => void (globalForAmqp.__kaffebarConnection = undefined),
+      );
       return connection;
     })
     .catch((error: unknown) => {
@@ -87,8 +93,6 @@ export async function subscribeToOrders(
   });
   channel.on("close", () => onClosed?.());
 
-  let consumerTag: string | undefined;
-
   // ---------------------------------------------------------------------------
   // TODO (runde 2). Fire kall, i denne rekkefølgen, alle på `channel`:
   //
@@ -113,7 +117,7 @@ export async function subscribeToOrders(
   //                       til `onEvent`. Bruk { noAck: true }: et UI som mister en
   //                       hendelse skal ikke blokkere køen, og neste hendelse henter
   //                       uansett hele lista på nytt.
-  //                       Ta vare på `consumerTag` fra svaret, så opprydningen
+  //                       Ta vare på `≈` fra svaret, så opprydningen
   //                       nedenfor kan avslutte abonnementet.
   //
   // Står du fast: `rabbitmq-solution.ts` i samme mappe.
@@ -122,8 +126,32 @@ export async function subscribeToOrders(
   // ikke er løst. Uten den ville route handleren meldt «klar» til nettleseren selv
   // om ingen hendelser kunne komme, og indikatoren hadde stått på «Live» og løyet.
   // Den forsvinner av seg selv når du setter `consumerTag` i consume-kallet.
-  void RABBITMQ_EXCHANGE;
-  void onEvent;
+
+  await channel.assertExchange(RABBITMQ_EXCHANGE, "topic");
+  const queue = await channel.assertQueue("", {
+    exclusive: true,
+    autoDelete: true,
+  });
+  await channel.bindQueue(queue.queue, RABBITMQ_EXCHANGE, "order.#");
+  const consumer = await channel.consume(
+    queue.queue,
+    (message) => {
+      if (!message) {
+        return;
+      }
+
+      const parsed = JSON.parse(message.content.toString());
+      onEvent(parsed);
+    },
+    {
+      noAck: true,
+    },
+  );
+
+  const consumerTag = consumer.consumerTag;
+
+  // void RABBITMQ_EXCHANGE;
+  // void onEvent;
 
   if (!consumerTag) {
     await channel.close();

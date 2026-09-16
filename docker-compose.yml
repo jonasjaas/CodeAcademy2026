@@ -54,7 +54,7 @@ services:
       - KAFFEBAR_EVENTS_ENABLED=true
       - KAFFEBAR_EVENTS_EXCHANGE=kaffebar
       - KAFFEBAR_BARISTA_AUTOENABLED=true
-      - KAFFEBAR_BARISTA_INTERVALMS=8000
+      - KAFFEBAR_BARISTA_INTERVALMS=200
       - SPRING_RABBITMQ_HOST=rabbitmq
       - SPRING_RABBITMQ_PORT=5672
     networks:
@@ -84,9 +84,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - Kaffebar__Events__Enabled=true
       - Kaffebar__Events__Exchange=kaffebar
-      - Kaffebar__Events__RabbitMqHost=rabbitmq
+      - Kaffebar__Events__Uri=amqp://guest:guest@rabbitmq:5672
       - Kaffebar__Barista__AutoEnabled=true
-      - Kaffebar__Barista__IntervalMs=8000
+      - Kaffebar__Barista__IntervalMs=200
     networks:
       default:
         aliases: [kaffebar-api]

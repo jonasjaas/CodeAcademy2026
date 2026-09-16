@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEventSource } from "./useEventSource";
 import type { Order, OrderStatus } from "@/types/domain";
@@ -51,9 +51,26 @@ export function useOrders(initialOrders: Order[]) {
     staleTime: 1000,
   });
 
+  const pendingRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
   const onEvent = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY });
+    if (pendingRef.current) return;
+
+    pendingRef.current = true;
+    timeoutRef.current = setTimeout(() => {
+      void queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY });
+      pendingRef.current = false;
+    }, 3000);
   }, [queryClient]);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const connection = useEventSource(EVENTS_URL, onEvent);
 
@@ -64,7 +81,13 @@ export function useUpdateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: string; status: OrderStatus }) => {
+    mutationFn: async ({
+      orderId,
+      status,
+    }: {
+      orderId: string;
+      status: OrderStatus;
+    }) => {
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
@@ -76,6 +99,7 @@ export function useUpdateStatus() {
     // Vi henter på nytt med én gang i stedet for å vente på at hendelsen skal
     // komme tilbake via RabbitMQ. Da føles knappen umiddelbar selv om broker
     // er treg — eller nede.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY }),
   });
 }
