@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MenuCard } from "./MenuCard";
 import { EmptyState } from "./EmptyState";
 import { ORDERS_QUERY_KEY } from "@/hooks/useOrders";
+import type { OrderDraft } from "@/lib/orderDraft";
 import {
   MILK_LABEL,
   SIZE_LABEL,
@@ -28,9 +29,11 @@ const MILKS: MilkType[] = ["WHOLE", "SKIMMED", "OAT", "SOY"];
 export function OrderForm({
   menu,
   onOrdered,
+  onSelectionChange,
 }: {
   menu: Coffee[];
   onOrdered?: (order: Order) => void;
+  onSelectionChange?: (draft: OrderDraft) => void;
 }) {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Coffee | null>(menu[0] ?? null);
@@ -39,6 +42,16 @@ export function OrderForm({
   const [milkType, setMilkType] = useState<MilkType | "">("");
   const [extraShot, setExtraShot] = useState(false);
   const [quantity, setQuantity] = useState(1);
+
+  const current: OrderDraft = {
+    coffeeName: selected?.name ?? "",
+    customerName,
+    size,
+    milkType,
+    extraShot,
+    quantity,
+  };
+  const notify = (patch: Partial<OrderDraft>) => onSelectionChange?.({ ...current, ...patch });
 
   const mutation = useMutation({
     mutationFn: async (request: CreateOrderRequest) => {
@@ -54,6 +67,7 @@ export function OrderForm({
     onSuccess: (order) => {
       setCustomerName("");
       setQuantity(1);
+      notify({ customerName: "", quantity: 1 });
       void queryClient.invalidateQueries({ queryKey: ORDERS_QUERY_KEY });
       onOrdered?.(order);
     },
@@ -95,7 +109,10 @@ export function OrderForm({
               key={coffee.id}
               coffee={coffee}
               selected={selected?.id === coffee.id}
-              onSelect={setSelected}
+              onSelect={(c) => {
+                setSelected(c);
+                notify({ coffeeName: c.name });
+              }}
             />
           ))}
         </div>
@@ -106,7 +123,10 @@ export function OrderForm({
           <span className="text-sm font-semibold">Navn</span>
           <input
             value={customerName}
-            onChange={(event) => setCustomerName(event.target.value)}
+            onChange={(event) => {
+              setCustomerName(event.target.value);
+              notify({ customerName: event.target.value });
+            }}
             required
             minLength={2}
             maxLength={50}
@@ -119,7 +139,10 @@ export function OrderForm({
           <span className="text-sm font-semibold">Størrelse</span>
           <select
             value={size}
-            onChange={(event) => setSize(event.target.value as CoffeeSize)}
+            onChange={(event) => {
+              setSize(event.target.value as CoffeeSize);
+              notify({ size: event.target.value as CoffeeSize });
+            }}
             className="rounded-lg border border-line bg-card px-3 py-2"
           >
             {SIZES.map((value) => (
@@ -134,7 +157,10 @@ export function OrderForm({
           <span className="text-sm font-semibold">Melk</span>
           <select
             value={milkType}
-            onChange={(event) => setMilkType(event.target.value as MilkType | "")}
+            onChange={(event) => {
+              setMilkType(event.target.value as MilkType | "");
+              notify({ milkType: event.target.value as MilkType | "" });
+            }}
             className="rounded-lg border border-line bg-card px-3 py-2"
           >
             <option value="">Ingen</option>
@@ -153,7 +179,10 @@ export function OrderForm({
             min={1}
             max={10}
             value={quantity}
-            onChange={(event) => setQuantity(Number(event.target.value))}
+            onChange={(event) => {
+              setQuantity(Number(event.target.value));
+              notify({ quantity: Number(event.target.value) });
+            }}
             className="rounded-lg border border-line bg-card px-3 py-2"
           />
         </label>
@@ -163,7 +192,10 @@ export function OrderForm({
         <input
           type="checkbox"
           checked={extraShot}
-          onChange={(event) => setExtraShot(event.target.checked)}
+          onChange={(event) => {
+            setExtraShot(event.target.checked);
+            notify({ extraShot: event.target.checked });
+          }}
           className="h-4 w-4 accent-[var(--accent)]"
         />
         Ekstra shot
