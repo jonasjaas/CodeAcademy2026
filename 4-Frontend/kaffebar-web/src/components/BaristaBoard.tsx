@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { StatusColumn } from "./StatusColumn";
+import { CoffeeSummary } from "./CoffeeSummary";
 import { LiveIndicator } from "./LiveIndicator";
 import { useOrders, useUpdateStatus } from "@/hooks/useOrders";
 import { STATUS_ORDER, type Order, type OrderStatus } from "@/types/domain";
@@ -34,6 +35,8 @@ export function BaristaBoard({ initialOrders }: { initialOrders: Order[] }) {
         </p>
         <LiveIndicator state={connection} />
       </div>
+
+      <CoffeeSummary orders={orders} />
 
       {connection === "closed" && (
         <p className="rounded-lg border border-line bg-accent-soft px-3 py-2 text-sm text-secondary">
